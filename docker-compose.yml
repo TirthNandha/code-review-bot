@@ -1,0 +1,4 @@
+# docker-compose.yml
+# Defines the single `review_service` container for local development and testing.
+# Mounts .env for secrets, maps host port 8000 → container port 8000,
+# and adds a health check that hits GET /health every 30 s.

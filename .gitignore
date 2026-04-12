@@ -1,0 +1,50 @@
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.env/
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variable and secret files
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VSCode settings and other editors
+.vscode/
+.idea/
+
+# Log files
+*.log
+
+# Distribution/build
+dist/
+build/
+*.egg-info/
+
+# Test output
+.cache/
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+
+# Node artifacts (in case any JS tooling sneaks in)
+node_modules/
+
+# Miscellaneous
+*.swp
+*.swo
+*.bak
+
+# Ignore coverage files
+coverage.xml.env

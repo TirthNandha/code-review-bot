@@ -1,0 +1,8 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.0
+httpx==0.28.1
+pydantic==2.11.2
+pydantic-settings==2.9.1
+python-dotenv==1.1.0
+python-multipart==0.0.20   # required by FastAPI to accept multipart/form-data uploads
+tiktoken==0.9.0            # token counting for chunk_by_token_limit()
