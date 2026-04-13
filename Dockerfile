@@ -1,5 +1,14 @@
-# Dockerfile
-# Builds the review_service into a minimal Python 3.12 image.
-# Installs dependencies from requirements.txt, copies the service source,
-# and starts uvicorn on port 8000.
-# Used by docker-compose and (optionally) deployed directly to a VPS or cloud run.
+FROM python:3.12-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY review_service/ review_service/
+
+EXPOSE 8000
+
+CMD ["uvicorn", "review_service.main:app", "--host", "0.0.0.0", "--port", "8000"]

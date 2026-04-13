@@ -1,4 +1,37 @@
-# code-review.yml
-# GitHub Actions workflow that triggers on pull_request events (opened, synchronize, reopened).
-# Extracts the PR diff with `git diff`, then POSTs it to the deployed review service.
-# The service URL and a GitHub token are injected via repository secrets.
+name: LLM Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate diff
+        run: |
+          git diff origin/${{ github.event.pull_request.base.ref }}..HEAD > /tmp/pr.diff
+          echo "Diff size: $(wc -c < /tmp/pr.diff) bytes"
+          if [ ! -s /tmp/pr.diff ]; then
+            echo "Empty diff — skipping review."
+            echo "SKIP_REVIEW=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Send diff to review service
+        if: env.SKIP_REVIEW != 'true'
+        run: |
+          curl -s -f -X POST "${{ secrets.REVIEW_SERVICE_URL }}/review" \
+            -F "diff_file=@/tmp/pr.diff" \
+            -F "pr_number=${{ github.event.pull_request.number }}" \
+            -F "repo=${{ github.repository }}" \
+            -F "github_token=${{ secrets.GH_PAT }}" \
+            --max-time 300
