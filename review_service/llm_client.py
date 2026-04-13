@@ -28,7 +28,7 @@ OPENROUTER_MAX_TOKENS: int = int(os.getenv("OPENROUTER_MAX_TOKENS", "2048"))
 OPENROUTER_TEMPERATURE: float = float(os.getenv("OPENROUTER_TEMPERATURE", "0"))
 
 API_URL: str = "https://openrouter.ai/api/v1/chat/completions"
-REQUEST_TIMEOUT: float = 90.0
+REQUEST_TIMEOUT: float = 240.0
 
 _FENCE_RE = re.compile(r"```(?:json)?\s*\n?(.*?)\n?\s*```", re.DOTALL)
 
@@ -87,10 +87,13 @@ async def review_chunk(chunk: DiffChunk) -> ReviewResponse | None:
 
     try:
         body = response.json()
-        content: str = body["choices"][0]["message"]["content"]
+        content = body["choices"][0]["message"]["content"]
+        if content is None:
+            logger.warning("LLM returned null content for %s — skipping", chunk.filename)
+            return None
         cleaned = _extract_json(content)
         parsed = json.loads(cleaned)
-    except (KeyError, IndexError, json.JSONDecodeError) as exc:
+    except (KeyError, IndexError, json.JSONDecodeError, TypeError) as exc:
         logger.error(
             "Failed to extract/parse LLM JSON for %s: %s — raw: %s",
             chunk.filename, exc, response.text[:500],

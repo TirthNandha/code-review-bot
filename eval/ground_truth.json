@@ -1,1 +1,78 @@
-[]
+[
+  {
+    "id": "gt-001",
+    "diff": "diff --git a/src/db.py b/src/db.py\nindex aaa..bbb 100644\n--- a/src/db.py\n+++ b/src/db.py\n@@ -10,3 +10,5 @@ def get_user(user_id):\n     conn = get_connection()\n+    query = f\"SELECT * FROM users WHERE id = '{user_id}'\"\n+    return conn.execute(query).fetchone()\n     pass",
+    "expected_issues": [
+      {
+        "filename": "src/db.py",
+        "line_number": 12,
+        "severity": "critical",
+        "category": "security",
+        "description": "SQL injection via f-string interpolation"
+      }
+    ],
+    "notes": "True Positive case — clear SQL injection."
+  },
+  {
+    "id": "gt-002",
+    "diff": "diff --git a/src/config.py b/src/config.py\nindex aaa..bbb 100644\n--- a/src/config.py\n+++ b/src/config.py\n@@ -1,3 +1,5 @@\n import os\n+AWS_SECRET_KEY = \"AKIAIOSFODNN7EXAMPLE\"\n+DB_PASSWORD = \"supersecret123\"\n def load_config():\n     pass",
+    "expected_issues": [
+      {
+        "filename": "src/config.py",
+        "line_number": 3,
+        "severity": "critical",
+        "category": "security",
+        "description": "Hardcoded AWS secret key"
+      },
+      {
+        "filename": "src/config.py",
+        "line_number": 4,
+        "severity": "critical",
+        "category": "security",
+        "description": "Hardcoded database password"
+      }
+    ],
+    "notes": "True Positive case — two hardcoded secrets."
+  },
+  {
+    "id": "gt-003",
+    "diff": "diff --git a/src/utils.py b/src/utils.py\nindex aaa..bbb 100644\n--- a/src/utils.py\n+++ b/src/utils.py\n@@ -5,3 +5,6 @@ def process_items(items):\n     results = []\n+    for i in range(1, len(items)):\n+        results.append(items[i].strip())\n+    return results",
+    "expected_issues": [
+      {
+        "filename": "src/utils.py",
+        "line_number": 7,
+        "severity": "high",
+        "category": "bug",
+        "description": "Off-by-one: range starts at 1, skipping first item"
+      }
+    ],
+    "notes": "True Positive case — off-by-one error."
+  },
+  {
+    "id": "gt-004",
+    "diff": "diff --git a/src/math_utils.py b/src/math_utils.py\nindex aaa..bbb 100644\n--- a/src/math_utils.py\n+++ b/src/math_utils.py\n@@ -1,3 +1,6 @@\n import math\n+\n+def circle_area(radius: float) -> float:\n+    return math.pi * radius ** 2",
+    "expected_issues": [],
+    "notes": "False Positive detector — clean code, no issues expected. Any findings here are false positives."
+  },
+  {
+    "id": "gt-005",
+    "diff": "diff --git a/src/api/admin.py b/src/api/admin.py\nindex aaa..bbb 100644\n--- a/src/api/admin.py\n+++ b/src/api/admin.py\n@@ -8,3 +8,8 @@ from fastapi import APIRouter\n router = APIRouter()\n+\n+@router.delete(\"/users/{user_id}\")\n+async def delete_user(user_id: int):\n+    db.execute(f\"DELETE FROM users WHERE id = {user_id}\")\n+    return {\"deleted\": user_id}",
+    "expected_issues": [
+      {
+        "filename": "src/api/admin.py",
+        "line_number": 12,
+        "severity": "critical",
+        "category": "security",
+        "description": "No authentication/authorization check on admin delete endpoint"
+      },
+      {
+        "filename": "src/api/admin.py",
+        "line_number": 13,
+        "severity": "critical",
+        "category": "security",
+        "description": "SQL injection via f-string in DELETE query"
+      }
+    ],
+    "notes": "True Positive case — missing auth check + SQL injection. Tests whether bot catches both."
+  }
+]

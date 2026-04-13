@@ -79,9 +79,11 @@ async def review(
         async with semaphore:
             return await review_chunk(chunk)
 
+    logger.info("Sending %d chunk(s) to LLM...", len(chunks))
     results: list[ReviewResponse | None] = await asyncio.gather(
         *[_limited_review(c) for c in chunks]
     )
+    logger.info("All LLM calls complete")
 
     all_issues: list[ReviewIssue] = []
     for resp in results:
@@ -92,12 +94,14 @@ async def review(
 
     comments_posted: int = 0
     if all_issues:
+        logger.info("Posting %d comment(s) to GitHub...", len(all_issues))
         comments_posted = await post_review_comments(
             issues=all_issues,
             repo=repo,
             pr_number=pr_number,
             github_token=github_token,
         )
+        logger.info("GitHub posting complete: %d posted", comments_posted)
 
     return JSONResponse({
         "issues_found": len(all_issues),
